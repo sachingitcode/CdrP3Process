@@ -222,7 +222,7 @@ public class CdrParserProcess {
                         logger.info(".test_imei_details Query :: ." + query);
                         executorService.execute(new InsertDbDao(conn, query));
                     }
-                    device_info.put("testImeiFlag", String.valueOf(anyMatch));
+                    device_info.put("testImeiFlag", anyMatch ? "1": "0" );
                     String failedRuleDate = null;
                     counter++;
                     if (device_info.get("MSISDN").startsWith(propertiesReader.localMsisdnStartSeries) && device_info.get("IMSI").startsWith(propertiesReader.localISMIStartSeries)) {
@@ -267,14 +267,14 @@ public class CdrParserProcess {
                         gsmaTac = "V";
                         logger.debug("allocation_date after   : ----" + validTacMap.get(device_info.get("tac")));
                         if (validTacMap.get(device_info.get("tac")).before(new Date())) {
-                            device_info.put("isUsedFlag", "false");
+                            device_info.put("isUsedFlag", "0");
                         } else {
-                            device_info.put("isUsedFlag", "true");
+                            device_info.put("isUsedFlag", "1");
                         }
                     } else {
                         gsmaTac = "I";
                         logger.debug("allocation_date is null returning false  ");
-                        device_info.put("isUsedFlag", "false");
+                        device_info.put("isUsedFlag", "0");
                     }
                     if (oldimei.equalsIgnoreCase(device_info.get("modified_imei"))) {
                         Thread.sleep(Long.parseLong(sleepTime));
@@ -375,7 +375,7 @@ public class CdrParserProcess {
                 + " (actual_imei,msisdn,imsi,create_filename,update_filename,"
                 + "updated_on,created_on,system_type,failed_rule_id,failed_rule_name,tac,period,action "
                 + " , mobile_operator , record_type , failed_rule_date,  modified_on ,record_time, imei , raw_cdr_file_name , imei_arrival_time , "
-                + "source, update_source, feature_name , server_origin , update_imei_arrival_time ,update_raw_cdr_file_name ,actual_operator,test_imei, is_used) "
+                + "source, update_source, feature_name , server_origin , update_imei_arrival_time ,update_raw_cdr_file_name ,actual_operator,is_test_imei, is_used) "
                 + " values('" + device_info.get("IMEI") + "'," + "'" + device_info.get("MSISDN") + "'," + "'" + device_info.get("IMSI") + "'," + "'" + device_info.get("file_name") + "'," + "'" + device_info.get("file_name") + "',"
                 + "" + dateFunction + "," + "" + dateFunction + "," + "'" + device_info.get("system_type") + "'," + "'" + failed_rule_id + "'," + "'" + failed_rule_name + "'," + "'" + device_info.get("tac") + "'," + "'" + period + "'," + "'" + finalAction + "' , " + "'" + device_info.get("operator") + "' , "
                 + "'" + device_info.get("record_type") + "'," + " " + failedRuleDate + " ," + "" + dateFunction + "," + " " + defaultStringtoDate(device_info.get("record_time")) + " , " + "'" + device_info.get("modified_imei") + "', " + "'" + device_info.get("raw_cdr_file_name") + "',"
@@ -390,7 +390,7 @@ public class CdrParserProcess {
                 : "" + appdbName + ".active_unique_foreign_imei";
         return "update " + dbName + " set " + "update_filename = '" + device_info.get("file_name") + "', updated_on=" + dateFunction + "" + ", modified_on=" + dateFunction + "" + ", failed_rule_date=" + failedRuleDate + "" + ", failed_rule_id='" + failed_rule_id + "', failed_rule_name='" + failed_rule_name + "',"
                 + "period='" + period + "',update_raw_cdr_file_name='" + device_info.get("raw_cdr_file_name") + "',update_imei_arrival_time= " + defaultStringtoDate(device_info.get("imei_arrival_time")) + " ,update_source ='" + device_info.get("source") + "',server_origin ='" + server_origin + "',action='" + finalAction + "' , imsi = '" + device_info.get("IMSI")
-                + "' , is_used = '" + device_info.get("isUsedFlag") + "'  , test_imei = '" + device_info.get("testImeiFlag") + "'   "
+                + "' , is_used = '" + device_info.get("isUsedFlag") + "'  , is_test_imei = '" + device_info.get("testImeiFlag") + "'   "
                 + "  where imei ='" + device_info.get("modified_imei") + "'";
     }
 
@@ -403,7 +403,7 @@ public class CdrParserProcess {
                 + ", failed_rule_id='" + failed_rule_id + "', failed_rule_name='" + failed_rule_name + "',period='" + period + "',"
                 + " update_raw_cdr_file_name='" + device_info.get("raw_cdr_file_name") + "',update_imei_arrival_time=" + defaultStringtoDate(device_info.get("imei_arrival_time"))
                 + ",     update_source ='" + device_info.get("source") + "',server_origin ='" + server_origin + "',action='" + finalAction
-                + "', imsi = '" + device_info.get("IMSI") + "'  , is_used = '" + device_info.get("isUsedFlag") + "'   , test_imei = '" + device_info.get("testImeiFlag") + "'      where imei ='" + device_info.get("modified_imei") + "'  ";
+                + "', imsi = '" + device_info.get("IMSI") + "'  , is_used = '" + device_info.get("isUsedFlag") + "'   , is_test_imei = '" + device_info.get("testImeiFlag") + "'      where imei ='" + device_info.get("modified_imei") + "'  ";
     }
 
     private static String getInsertDuplicateDbQuery(HashMap<String, String> device_info, String dateFunction, String failed_rule_name, int failed_rule_id, String period, String finalAction, String failedRuleDate, String server_origin, String gsmaTac) {
@@ -416,7 +416,7 @@ public class CdrParserProcess {
                 + "  (actual_imei,msisdn,imsi,create_filename,update_filename,"
                 + "updated_on,created_on,system_type,failed_rule_id,failed_rule_name,tac,period,action  "
                 + " , mobile_operator , record_type , failed_rule_date,  modified_on  ,record_time, imei ,raw_cdr_file_name , imei_arrival_time , source ,update_source, feature_name ,server_origin "
-                + "  , update_raw_cdr_file_name ,update_imei_arrival_time,actual_operator ,test_imei ,is_used ) "
+                + "  , update_raw_cdr_file_name ,update_imei_arrival_time,actual_operator ,is_test_imei ,is_used ) "
                 + "values('" + device_info.get("IMEI") + "'," + "'" + device_info.get("MSISDN") + "'," + "'" + device_info.get("IMSI") + "'," + "'" + device_info.get("file_name") + "',"
                 + "'" + device_info.get("file_name") + "'," + "" + dateFunction + "," + "" + dateFunction + "," + "'" + device_info.get("system_type") + "'," + "'" + failed_rule_id + "'," + "'" + failed_rule_name + "'," + "'" + device_info.get("tac") + "'," + "'" + period + "',"
                 + "'" + finalAction + "' , " + "'" + device_info.get("operator") + "' , " + "'" + device_info.get("record_type") + "' , " + "" + failedRuleDate + " , " + "" + dateFunction + ",  " + " " + defaultStringtoDate(device_info.get("record_time")) + " , " + "'" + device_info.get("modified_imei") + "', " + "'" + device_info.get("raw_cdr_file_name") + "',"
@@ -433,7 +433,7 @@ public class CdrParserProcess {
         return "update " + dbName + " set " + "update_filename = '" + device_info.get("file_name") + "', updated_on=" + dateFunction + "" + ", modified_on=" + dateFunction
                 + "" + ", failed_rule_id='" + failed_rule_id + "', failed_rule_name='" + failed_rule_name + "',period='" + period + "',update_raw_cdr_file_name='" + device_info.get("raw_cdr_file_name")
                 + "',update_source ='" + device_info.get("source") + "',update_imei_arrival_time= " + defaultStringtoDate(device_info.get("imei_arrival_time")) + ",server_origin='" + server_origin + "'      ,action='"
-                + finalAction + "'  ,is_used='" + device_info.get("isUsedFlag") + "'   , test_imei = '" + device_info.get("testImeiFlag") + "'       , imsi = '" + device_info.get("IMSI") + "'    where msisdn='" + device_info.get("MSISDN") + "'  and imei='" + device_info.get("modified_imei") + "'";
+                + finalAction + "'  ,is_used='" + device_info.get("isUsedFlag") + "'   , is_test_imei = '" + device_info.get("testImeiFlag") + "'       , imsi = '" + device_info.get("IMSI") + "'    where msisdn='" + device_info.get("MSISDN") + "'  and imei='" + device_info.get("modified_imei") + "'";
     }
 
     private static String getUpdateDuplicateDbQuery(HashMap<String, String> device_info, String dateFunction, String failed_rule_name, int failed_rule_id, String period, String finalAction, String failedRuleDate, String server_origin, String gsmaTac) {
@@ -444,7 +444,7 @@ public class CdrParserProcess {
         return "update " + dbName + " set " + "update_filename = '" + device_info.get("file_name") + "', updated_on=" + dateFunction + "" + ", modified_on=" + dateFunction + "" + ", failed_rule_id='" + failed_rule_id + "', failed_rule_name='"
                 + failed_rule_name + "',period='" + period + "'  ,"
                 + " update_raw_cdr_file_name='" + device_info.get("raw_cdr_file_name") + "',update_imei_arrival_time=" + defaultStringtoDate(device_info.get("imei_arrival_time"))
-                + " , imsi='" + device_info.get("IMSI") + "'  ,  update_source ='" + device_info.get("source") + "',   server_origin='" + server_origin + "',action='" + finalAction + "' ,is_used='" + device_info.get("isUsedFlag") + "' , test_imei = '"
+                + " , imsi='" + device_info.get("IMSI") + "'  ,  update_source ='" + device_info.get("source") + "',   server_origin='" + server_origin + "',action='" + finalAction + "' ,is_used='" + device_info.get("isUsedFlag") + "' , is_test_imei = '"
                 + device_info.get("testImeiFlag") + "'        where msisdn='" + device_info.get("MSISDN") + "' and    imei='" + device_info.get("modified_imei") + "'";
     }
 
